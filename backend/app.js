@@ -16,6 +16,7 @@ const path = require('path');
 // Import env file
 const dotenv = require('dotenv');
 
+
 // Connection to the mongoose database
 mongoose.connect('mongodb+srv://'+process.env.MONGO_ID+':'+process.env.MONGO_PASS+'@cluster0.udr7c.mongodb.net/'+process.env.MONGO_NAME+'?retryWrites=true&w=majority',
 { useNewUrlParser: true, useUnifiedTopology: true })

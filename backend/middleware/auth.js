@@ -10,10 +10,11 @@ module.exports = (req, res, next) => {
         const userId = decodedToken.userId;
         if (req.body.userId && req.body.userId !== userId) {
             throw 'Unauthorized request !';
-        } else {
+        } else { 
+            module.exports.userId = userId;
             next();
         }
         } catch (error) {
-            res.status(403).json({ error: error | 'Unauthorized request !'});
+            res.status(403).json({ message: 'Unauthorized request !'});
         }
 };
