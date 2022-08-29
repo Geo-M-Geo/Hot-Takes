@@ -62,7 +62,7 @@ exports.deleteSauce = (req, res, next) => {
 // Module that modify the sauce
 exports.modifySauce = (req, res, next) => {
     const sauceObject = req.file ? {
-        ...JSON.parse(req.body.thing),
+        ...JSON.parse(req.body.sauce),
         imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
     } : { ...req.body };
     Sauce.findOne({_id: req.params.id})
@@ -82,28 +82,28 @@ exports.modifySauce = (req, res, next) => {
 
 // Module that add a like or a dislike
 exports.likeOrDislike = (req, res, next) => {
-        // If the user like the sauce 
-        if (req.body.like == 1) {
-            if (req.body.userId === authorization.userId) {
-            Sauce.findOne({_id: req.params.id})
-            .then((sauce) => {
-                    if (sauce.usersLiked.userId == req.body.userId) {
-                        res.status(400).json({message : 'Sauce already liked'});
-                    } else {                    
-                        Sauce.updateOne(
-                            {_id: req.params.id}, 
-                            {$push: {usersLiked: req.body.userId},
-                            $inc: {likes: +1}}
-                        )
-                        .then(() => res.status(200).json({message: 'Sauce liked !'}))
-                        .catch(error => res.status(400).json({error})); 
-                    }
-                })
-                .catch(error => res.status(400).json({error}));
-            } else {
-                res.status(400).json({message : 'Sauce already liked'});
-            }
+    // If the user like the sauce 
+    if (req.body.like == 1) {
+        if (req.body.userId === authorization.userId) {
+        Sauce.findOne({_id: req.params.id})
+        .then((sauce) => {
+                if (sauce.usersLiked.userId == req.body.userId) {
+                    res.status(400).json({message : 'Sauce already liked'});
+                } else {                    
+                    Sauce.updateOne(
+                        {_id: req.params.id}, 
+                        {$push: {usersLiked: req.body.userId},
+                        $inc: {likes: +1}}
+                    )
+                    .then(() => res.status(200).json({message: 'Sauce liked !'}))
+                    .catch(error => res.status(400).json({error})); 
+                }
+            })
+            .catch(error => res.status(400).json({error}));
+        } else {
+            res.status(400).json({message : 'Sauce already liked'});
         }
+    }
 
     // If the user disliked the sauce
     else if (req.body.like == -1) {
@@ -127,7 +127,7 @@ exports.likeOrDislike = (req, res, next) => {
                 res.status(400).json({message : 'Sauce already disliked'});
             }
     }
-    
+
     // If the user cancel his like or his dislike
     else if (req.body.like == 0) {
         if (req.body.userId === authorization.userId) {
