@@ -67,12 +67,12 @@ exports.modifySauce = (req, res, next) => {
     } : { ...req.body };
     Sauce.findOne({_id: req.params.id})
         .then((sauce) => {
-            if (sauce.userId != authorization.userId) {
-                res.status(401).json({ message : 'Not authorized'});
-            } else {
+            if (sauce.userId === authorization.userId) {
                 Sauce.updateOne({ _id: req.params.id}, { ...sauceObject, _id: req.params.id})
                 .then(() => res.status(200).json({message : 'Objet modifié!'}))
                 .catch(error => res.status(401).json({ error }));
+            } else {
+                res.status(401).json({ message : 'Not authorized'});
             }
         })
         .catch((error) => {
