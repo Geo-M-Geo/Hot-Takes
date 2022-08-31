@@ -61,25 +61,31 @@ exports.deleteSauce = (req, res, next) => {
 
 // Module that modify the sauce
 exports.modifySauce = (req, res, next) => {
-    const sauceObject = req.file ? { // check if there is a file in the request
-        ...JSON.parse(req.body.sauce),
-        imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
-    } : { ...req.body }; // if there no file we juste get the body
+    const sauceObject = req.file ?
+        {
+            ...JSON.parse(req.body.sauce),
+            imageUrl: `${req.protocol}://${req.get('host')}/images/${req.file.filename}`
+        } : { ...req.body };
     Sauce.findOne({ _id: req.params.id })
-        .then((sauce) => {
+        .then(sauce => {
             if (sauce.userId === authorization.userId) {
-                const filename = sauce.imageUrl.split('/images/')[1];
-                fs.unlinkSync(`images/${filename}`)
-                Sauce.updateOne({ _id: req.params.id }, { ...sauceObject })
-                    .then(() => res.status(200).json({ message: 'Objet modifié!' }))
-                    .catch(error => res.status(401).json({ error }));
+                if (!req.file) {
+                    Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                        .then(() => res.status(200).json({ message: 'Objet modifié !' }))
+                        .catch(error => res.status(400).json({ error }));
+                } else {
+                    const filename = sauce.imageUrl.split('/images/')[1];
+                    fs.unlink(`images/${filename}`, () => {
+                        Sauce.updateOne({ _id: req.params.id }, { ...sauceObject, _id: req.params.id })
+                            .then(() => res.status(200).json({ message: 'Objet modifié !' }))
+                            .catch(error => res.status(400).json({ error }));
+                    })
+                }
             } else {
                 res.status(401).json({ message: 'Unauthorized request !' });
             }
         })
-        .catch((error) => {
-            res.status(400).json({ error });
-        });
+        .catch(error => res.status(500).json({ error }))
 };
 
 // Module that add a like, a dislike or cancel it
@@ -89,9 +95,8 @@ exports.likeOrDislike = async (req, res, next) => {
     if (req.body.like == 1) {
         Sauce.findOne({ _id: req.params.id })
             .then((sauce) => {
-                if ((sauce.usersLiked.includes(req.body.userId)) || (sauce.usersDisliked.includes(req.body.userId)) ) {
+                if ((sauce.usersLiked.includes(req.body.userId)) || (sauce.usersDisliked.includes(req.body.userId))) {
                     res.status(401).json({ message: 'Sauce already liked or disliked !' })
-                    
                 } else {
                     Sauce.updateOne(
                         { _id: req.params.id },
@@ -111,7 +116,7 @@ exports.likeOrDislike = async (req, res, next) => {
     else if (req.body.like == -1) {
         Sauce.findOne({ _id: req.params.id })
             .then((sauce) => {
-                if ( (sauce.usersDisliked.includes(req.body.userId)) || (sauce.usersLiked.includes(req.body.userId)) ) {
+                if ((sauce.usersDisliked.includes(req.body.userId)) || (sauce.usersLiked.includes(req.body.userId))) {
                     res.status(401).json({ message: 'Sauce already disliked or liked!' })
                 } else {
                     Sauce.updateOne(
@@ -126,7 +131,6 @@ exports.likeOrDislike = async (req, res, next) => {
                 }
             })
             .catch(error => res.status(400).json({ message: 'Sauce not found !' }));
-
     }
 
     // If the user cancel his like or his dislike
