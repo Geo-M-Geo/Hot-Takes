@@ -18,7 +18,7 @@ router.get('/sauces/:id', authorization, saucesController.getOneSauce);
 // Router that check the authorization and delete a sauce if youre the creator of it
 router.delete('/sauces/:id', authorization, saucesController.deleteSauce);
 // Router that check the authorization and find the sauce and modify it
-router.put('/sauces/:id', authorization, saucesController.modifySauce);
+router.put('/sauces/:id', authorization, multer, saucesController.modifySauce);
 // Router that check the authorization and add a like or a dislike
 router.post('/sauces/:id/like', authorization, saucesController.likeOrDislike);
 
